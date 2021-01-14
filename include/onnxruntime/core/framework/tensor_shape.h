@@ -79,7 +79,6 @@ class TensorShape : private std::vector<int64_t> {
     size_t n = std::min(num_dims, NumDimensions());
     for (size_t i = 0; i != n; ++i)
       dims[i] = static_cast<ptrdiff_t>(operator[](i));
-    memcpy(dims, data(), sizeof(value_type) * std::min(num_dims, NumDimensions()));
   }
 
   /**
