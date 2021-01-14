@@ -143,10 +143,10 @@ struct SliceSkips : std::vector<int64_t> {
     if (inner_most_dim >= 0 && inner_most_dim < steps_size)
       steps_i = steps[inner_most_dim];
 
-    SafeInt<size_t> pitch = 1;
+    SafeInt<ptrdiff_t> pitch = 1;
     for (size_t i = size(); i-- > 0;) {
       auto prevPitch = pitch;
-      pitch *= gsl::narrow<size_t>(dims[i]);
+      pitch *= gsl::narrow<ptrdiff_t>(dims[i]);
 
       // assume step == 1 if not present
       int64_t steps_i_minus_1 = 1;
@@ -201,9 +201,10 @@ struct SliceIteratorBase {
     }
 
     inner_extent_ = gsl::narrow<size_t>(extents_[dims.size() - 1]);
-    inner_step_ = gsl::narrow<size_t>(dims.size() == steps.size()
-                                          ? steps[dims.size() - 1]
-                                          : 1);
+    //It could be -1
+    inner_step_ = gsl::narrow<ptrdiff_t>(dims.size() == steps.size()
+                                             ? steps[dims.size() - 1]
+                                             : 1);
   }
 
   void AdvanceOverInnerExtent() {
@@ -303,7 +304,8 @@ struct SliceIteratorBase {
   const int64_t element_size_ = tensor_.DataType()->Size();
 
   gsl::span<const int64_t> extents_;
-  size_t inner_counter_{}, inner_extent_, inner_step_;
+  size_t inner_counter_{}, inner_extent_;
+  ptrdiff_t inner_step_;
   SliceSkips skips_;
   std::vector<int64_t> indices_;  // There is no index for innermost axis since it's a special case
 };
