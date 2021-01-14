@@ -86,7 +86,7 @@ Status SetupOptimizerParams(
       opt_node_config.mixed_precision_weight_arg = mixed_precision_weight_name_it->second;
     }
 
-    // check if initial optimizer states have been provided for weight
+    // retrieve value for initial optimizer states if provided for weight
     const auto optim_state_it = init_optimizer_states.find(original_weight_name);
     if (optim_state_it != init_optimizer_states.end()) {
       opt_node_config.initial_states = optim_state_it->second;
@@ -217,7 +217,6 @@ Status TrainingSession::ConfigureForTraining(
   }
 
   is_mixed_precision_enabled_ = config.mixed_precision_config.has_value();
-  is_megatron_enabled_ = config.distributed_config.horizontal_parallel_size > 1;
 
   std::string loss_name{};
   // Enable loss scale if mixed precision is enabled AND at pipeline last stage if pipeline is used.
@@ -675,11 +674,8 @@ Status TrainingSession::ApplyModelParallelTransformationsToMainGraph(std::unorde
 
   GraphTransformerManager graph_transformation_mgr{1};
   std::vector<std::unique_ptr<GraphTransformer>> transformers_to_register;
-  // TODO: ideally we can just reuse the CPU EP registered with the session, but in the training session case
-  // the EPs are registered after ConfigureForTraining and before Initialize is called. Hence we don't have access
-  // to the registered CPU EP at this stage. Hence creating the EP here again. This is still much better than
-  // creating an EP instance for every single node in ConstantFolding.
-  // Create execution frame for executing constant nodes.
+  // Creating the CPU EP here to be used to get the 
+  // CPU allocator for partitioning the optimizer state by column.
   std::unique_ptr<CPUExecutionProvider> cpu_execution_provider =
       onnxruntime::make_unique<CPUExecutionProvider>(CPUExecutionProviderInfo());
   std::unordered_set<std::string> compatible_eps = {};
@@ -979,9 +975,9 @@ common::Status TrainingSession::GetOptimizerState(std::unordered_map<std::string
   }
   // Change key from sharded_name to weight_name using partition_info
   for (const auto& weight : weight_partition_info_) {
-    const auto& it = opt_state_tensors.find(weight.second.view_name);
+    const auto& it = opt_state_tensors.find(weight.second.partition_name);
     if (it == opt_state_tensors.end()) {
-      ORT_RETURN_IF_NOT(allow_missing, "Failed to get optimizer params for partition: " + weight.second.view_name);
+      ORT_RETURN_IF_NOT(allow_missing, "Failed to get optimizer params for partition: " + weight.second.partition_name);
     } else {
       opt_state_tensors[weight.first] = it->second;
       opt_state_tensors.erase(it);
@@ -999,7 +995,7 @@ common::Status TrainingSession::GetModelState(std::unordered_map<std::string, Na
   for (const auto& weight : weight_partition_info_) {
     if (weight.second.weight_partitioned) {
       fp_tensor_names.erase(weight.first); // remove the original name
-      fp_tensor_names.insert(weight.second.view_name);
+      fp_tensor_names.insert(weight.second.partition_name);
     }
   }
 
@@ -1008,9 +1004,9 @@ common::Status TrainingSession::GetModelState(std::unordered_map<std::string, Na
   // Change key from sharded_name to weight_name using partition_info
   for (const auto& weight : weight_partition_info_) {
     if (weight.second.weight_partitioned) {
-      const auto& it = fp_weights.find(weight.second.view_name);
+      const auto& it = fp_weights.find(weight.second.partition_name);
       if (it == fp_weights.end()) {
-        ORT_RETURN_IF_NOT(allow_missing, "Failed to get weight partition: " + weight.second.view_name);
+        ORT_RETURN_IF_NOT(allow_missing, "Failed to get weight partition: " + weight.second.partition_name);
       } else {
         fp_weights[weight.first] = it->second;
         fp_weights.erase(it);
