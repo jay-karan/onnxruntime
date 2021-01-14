@@ -4,7 +4,7 @@
 #pragma once
 #include "gsl/gsl"
 #include "core/framework/utils.h"
-#include "safeint/SafeInt.hpp"
+#include "core/common/safeint.h"
 namespace onnxruntime {
 
 struct TensorPitches : std::vector<int64_t> {
