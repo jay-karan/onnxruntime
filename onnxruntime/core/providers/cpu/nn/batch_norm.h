@@ -59,7 +59,7 @@ class BatchNorm : public OpKernel {
     const size_t C = dims_vec[1];  // assume NCHW as per the spec
 
     // calculate sample_size (per individual channel)
-    SafeInt<size_t> sample_size = 1;
+    size_t sample_size = 1;
     for (size_t i = 2; i < dims_vec.size(); ++i) {
       sample_size *= gsl::narrow<size_t>(dims_vec[i]);
     }
