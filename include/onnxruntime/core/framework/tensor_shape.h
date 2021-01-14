@@ -44,11 +44,11 @@ class TensorShape : private std::vector<int64_t> {
      Return the dimension specified by <idx>.
   */
   const int64_t& operator[](size_t idx) const {
-    return std::vector<int64_t>::operator[](idx);
+    return std::vector<int64_t>::operator[](static_cast<int>(idx));
   }
 
   int64_t& operator[](size_t idx) {
-    return std::vector<int64_t>::operator[](idx);
+    return std::vector<int64_t>::operator[](static_cast<int>(idx));
   }
 
   bool operator==(const TensorShape& other) const noexcept {
@@ -66,20 +66,9 @@ class TensorShape : private std::vector<int64_t> {
   }
 
   /**
-     Copy 'this' into an array with given size
+     Copy dims into an array with given size
   */
-  template <typename T>
-  void CopyDims(T* dims, size_t num_dims) const {
-    size_t n = std::min(num_dims, NumDimensions());
-    for (size_t i = 0; i != n; ++i)
-      dims[i] = static_cast<ptrdiff_t>(operator[](i));
-  }
-
-  /**
-     Copy 'this' into an array with given size
-  */
-  template <>
-  void CopyDims<int64_t>(int64_t* dims, size_t num_dims) const {
+  void CopyDims(int64_t* dims, size_t num_dims) const {
     memcpy(dims, data(), sizeof(value_type) * std::min(num_dims, NumDimensions()));
   }
 

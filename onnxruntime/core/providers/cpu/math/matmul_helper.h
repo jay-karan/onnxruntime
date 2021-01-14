@@ -6,6 +6,17 @@
 #include "core/framework/tensor.h"
 
 namespace onnxruntime {
+template <typename T>
+inline void TensorShapeCopyDims(const TensorShape& shape, T* dims, size_t num_dims) {
+  size_t n = std::min(num_dims, shape.NumDimensions());
+  for (size_t i = 0; i != n; ++i)
+    dims[i] = static_cast<ptrdiff_t>(shape[i]);
+}
+
+template <>
+inline void TensorShapeCopyDims(const TensorShape& shape, int64_t* dims, size_t num_dims) {
+  shape.CopyDims(dims, num_dims);
+}
 
 class MatMulComputeHelper {
  public:
@@ -64,18 +75,18 @@ class MatMulComputeHelper {
 
       if (num_input_dims >= 2) {
         // left padded to (...,1,K)
-        left_shape.CopyDims(&left_padded_dims_[0], left_num_dims - 2);
+        TensorShapeCopyDims(left_shape, &left_padded_dims_[0], left_num_dims - 2);
         left_padded_dims_[num_dims_with_pad - 3] = static_cast<ptrdiff_t>(left_shape[transa ? left_num_dims - 1 : left_num_dims - 2]);
         left_padded_dims_[num_dims_with_pad - 1] = static_cast<ptrdiff_t>(left_shape[transa ? left_num_dims - 2 : left_num_dims - 1]);
       } else {
         // pad 1 in the front
-        left_shape.CopyDims(&left_padded_dims_[num_dims_with_pad - left_num_dims], left_num_dims);
+        TensorShapeCopyDims(left_shape, &left_padded_dims_[num_dims_with_pad - left_num_dims], left_num_dims);
       }
     } else {
       // pad 1 in the front for left
-      left_shape.CopyDims(&left_padded_dims_[num_dims_with_pad - left_num_dims], left_num_dims);
+      TensorShapeCopyDims(left_shape, &left_padded_dims_[num_dims_with_pad - left_num_dims], left_num_dims);
       // pad 1 in the front for right
-      right_shape.CopyDims(&right_padded_dims_[num_dims_with_pad - right_num_dims], right_num_dims);
+      TensorShapeCopyDims(right_shape, &right_padded_dims_[num_dims_with_pad - right_num_dims], right_num_dims);
     }
 
     // validate input shape and generate output shape
