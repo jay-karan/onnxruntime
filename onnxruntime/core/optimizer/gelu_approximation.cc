@@ -13,12 +13,14 @@ using namespace onnxruntime::common;
 namespace onnxruntime {
 
 // FastGelu supports limited data types.
-static std::vector<std::string> supported_data_types{"tensor(float16)", "tensor(float)", "tensor(bfloat16)"};
+static constexpr const char* const supported_data_types[] = {"tensor(float16)", "tensor(float)", "tensor(bfloat16)"};
+static constexpr size_t supported_data_types_len = sizeof(supported_data_types) / sizeof(char*);
+static_assert(supported_data_types_len == 3, "size mismatch");
 
 static bool IsSupportedDataType(const Node& node) {
   for (const auto& input_arg : node.InputDefs()) {
-    if (std::find(supported_data_types.begin(), supported_data_types.end(),
-                  *(input_arg->Type())) == supported_data_types.end()) {
+    if (std::find(supported_data_types, supported_data_types + supported_data_types_len,
+                  *(input_arg->Type())) == supported_data_types + supported_data_types_len) {
       return false;
     }
   }

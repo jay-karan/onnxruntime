@@ -42,9 +42,9 @@ class MatMulComputeHelper {
     // A: [M1, M2, ... K], B: [1, ..., 1, N, K]^T
     if (!transa && left_num_dims >= 2 && right_num_dims >= 2 && left_num_dims >= right_num_dims &&
         right_shape.SizeToDimension(right_num_dims - 1) == right_shape[right_num_dims - 2]) {
-      M_ = gsl::narrow<ptrdiff_t>(left_shape.SizeToDimension(left_num_dims - 1));
-      K_ = gsl::narrow<ptrdiff_t>(left_shape[left_num_dims - 1]);
-      N_ = gsl::narrow<ptrdiff_t>(transb ? right_shape[right_num_dims - 2] : right_shape[right_num_dims - 1]);
+      M_ = static_cast<ptrdiff_t>(left_shape.SizeToDimension(left_num_dims - 1));
+      K_ = static_cast<ptrdiff_t>(left_shape[left_num_dims - 1]);
+      N_ = static_cast<ptrdiff_t>(transb ? right_shape[right_num_dims - 2] : right_shape[right_num_dims - 1]);
       output_shape_ = left_shape;
       output_shape_[left_num_dims - 1] = N_;
       output_offsets_ = {0};
@@ -101,17 +101,17 @@ class MatMulComputeHelper {
         ORT_RETURN_IF_NOT(right_padded_dims_[idx_dim] == 1, "right operand cannot broadcast on dim ", idx_dim);
     }
     if (transa) {
-      M_ = gsl::narrow<ptrdiff_t>(has_1D_input ? 1 : left_shape[left_num_dims - 1]);
-      K_ = gsl::narrow<ptrdiff_t>(left_shape[left_num_dims - 2]);
+      M_ = static_cast<ptrdiff_t>(has_1D_input ? 1 : left_shape[left_num_dims - 1]);
+      K_ = static_cast<ptrdiff_t>(left_shape[left_num_dims - 2]);
     } else {
-      M_ = gsl::narrow<ptrdiff_t>(has_1D_input ? 1 : left_shape[left_num_dims - 2]);
-      K_ = gsl::narrow<ptrdiff_t>(left_shape[left_num_dims - 1]);
+      M_ = static_cast<ptrdiff_t>(has_1D_input ? 1 : left_shape[left_num_dims - 2]);
+      K_ = static_cast<ptrdiff_t>(left_shape[left_num_dims - 1]);
     }
 
     if (transb) {
-      N_ = gsl::narrow<ptrdiff_t>((right_num_dims == 1) ? 1 : right_shape[right_num_dims - 2]);
+      N_ = static_cast<ptrdiff_t>((right_num_dims == 1) ? 1 : right_shape[right_num_dims - 2]);
     } else {
-      N_ = gsl::narrow<ptrdiff_t>((right_num_dims == 1) ? 1 : right_shape[right_num_dims - 1]);
+      N_ = static_cast<ptrdiff_t>((right_num_dims == 1) ? 1 : right_shape[right_num_dims - 1]);
     }
 
     if (!has_1D_input) {
