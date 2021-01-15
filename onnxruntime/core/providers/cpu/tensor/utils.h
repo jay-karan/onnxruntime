@@ -146,7 +146,7 @@ struct SliceSkips : std::vector<int64_t> {
     SafeInt<ptrdiff_t> pitch = 1;
     for (size_t i = size(); i-- > 0;) {
       auto prevPitch = pitch;
-      pitch *= gsl::narrow<ptrdiff_t>(dims[i]);
+      pitch *= static_cast<ptrdiff_t>(dims[i]);
 
       // assume step == 1 if not present
       int64_t steps_i_minus_1 = 1;
