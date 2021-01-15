@@ -23,7 +23,7 @@ struct TensorPitches : std::vector<int64_t> {
     auto tensor_rank = dims.size();
     auto pitch_rank = p.size();
     auto padded_rank = pitch_rank - tensor_rank;
-    if (gsl::narrow_cast<ptrdiff_t>(padded_rank) < 0)
+    if (static_cast_cast<ptrdiff_t>(padded_rank) < 0)
       return false;
 
     // Guard against Scalars
@@ -197,12 +197,12 @@ struct SliceIteratorBase {
     // Initial skip, so that input_ points to the first element to copy
     for (size_t i = dims.size(); i-- > 0;) {
       input_ += pitch * starts[i] * element_size_;
-      pitch *= gsl::narrow<size_t>(dims[i]);
+      pitch *= static_cast<size_t>(dims[i]);
     }
 
-    inner_extent_ = gsl::narrow<size_t>(extents_[dims.size() - 1]);
+    inner_extent_ = static_cast<size_t>(extents_[dims.size() - 1]);
     //It could be -1
-    inner_step_ = gsl::narrow<ptrdiff_t>(dims.size() == steps.size()
+    inner_step_ = static_cast<ptrdiff_t>(dims.size() == steps.size()
                                              ? steps[dims.size() - 1]
                                              : 1);
   }
@@ -409,7 +409,7 @@ struct WritableSliceIterator {
     // Initial skip, so that input_ points to the first element to copy
     for (size_t i = dims.size(); i-- > 0;) {
       input_ += pitch * starts[i];
-      pitch *= gsl::narrow<size_t>(dims[i]);
+      pitch *= static_cast<size_t>(dims[i]);
     }
 
     inner_extent_ = extents_[dims.size() - 1];
