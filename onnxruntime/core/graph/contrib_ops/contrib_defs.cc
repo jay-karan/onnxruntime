@@ -273,6 +273,33 @@ void FusedMatMulShapeInference(ONNX_NAMESPACE::InferenceContext& ctx) {
   }
   updateOutputShape(ctx, 0, resultShape);
 }
+    
+    
+static const char* Mish_doc = R"DOC(
+Created for testing
+)DOC";
+
+  ONNX_CONTRIB_OPERATOR_SCHEMA(Mish)
+      .SetDomain(kOnnxDomain)
+      .SinceVersion(1)
+      .SetDoc(Mish_doc)
+      .Input(
+          0,
+          "X",
+          "Input tensor",
+          "T")
+      .Output(
+          0,
+          "Y",
+          "Output tensor",
+          "T")
+      .TypeConstraint(
+          "T",
+          {"tensor(float)",
+             "tensor(float16)",
+             "tensor(double)"},
+          "Constrain input and output types to all numeric tensors and bool tensors.")
+          .TypeAndShapeInferenceFunction(ONNX_NAMESPACE::propagateShapeAndTypeFromFirstInput);
 
 void RegisterBertSchemas() {
   static const char* Attention_ver1_doc = R"DOC(
