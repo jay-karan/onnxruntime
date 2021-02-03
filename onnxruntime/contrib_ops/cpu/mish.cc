@@ -12,3 +12,4 @@ ONNX_OPERATOR_KERNEL_EX(
 );
 
 }
+}
